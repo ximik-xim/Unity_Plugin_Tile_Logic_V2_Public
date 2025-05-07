@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4923c7056d14fe4c8dd302632ee64c8, type: 3}
+  m_Name: New Data List Type Tile SO V2
+  m_EditorClassIdentifier: 
+  _list:
+  - Key:
+      _dataSO: {fileID: 11400000, guid: f5615a4aed87a9e4bb050a73b81b5779, type: 2}
+      _selectIndif: {fileID: 11400000, guid: 3ecc48d1ff7d1a843b6e496fae9db704, type: 2}
+      _error:
+        Enable: 0
+        TextError: 
+        MessageType: 0
+    Data:
+    - {fileID: 6837861265981908585, guid: 989ed7863a5569d45bf6d3434f6d4af5, type: 3}
