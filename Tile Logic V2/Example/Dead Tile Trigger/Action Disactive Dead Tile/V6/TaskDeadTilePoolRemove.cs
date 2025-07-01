@@ -7,7 +7,7 @@ using UnityEngine;
 /// Action который при обноружении тригера на смерть таила, везмет с таила нужный скрипт и сообщит пулу, о том, что этот обьект пора вернуть в пул
 /// (а т.к в этой реализации на таиле есть реализованный интерфеис, то пул, сообит таилу, что тот возращаеться в пул, и логика самого таила и отключит этот таил)
 /// </summary>
-public class TaskDeadTilePoolRemove : AbsTileLogicAbsTaskDKO
+public class TaskDeadTilePoolRemove : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit;
     public override bool IsInit => true;

@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Вызывает логику отключения у таила
 /// </summary>
-public class TaskDisactiveDeadTile : AbsTileLogicAbsTaskDKO
+public class TaskDisactiveDeadTile : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit;
     public override bool IsInit => true;

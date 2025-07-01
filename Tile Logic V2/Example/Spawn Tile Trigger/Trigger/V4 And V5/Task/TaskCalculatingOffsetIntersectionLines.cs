@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Задача, на вычесления идеальной точки пересечения колайдеров талов(с учетом их векторов напровления), и нахождения итогового смещения
 /// </summary>
-public class TaskCalculatingOffsetIntersectionLines : AbsTileLogicAbsTaskDKO
+public class TaskCalculatingOffsetIntersectionLines : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit;
     public override bool IsInit => true;

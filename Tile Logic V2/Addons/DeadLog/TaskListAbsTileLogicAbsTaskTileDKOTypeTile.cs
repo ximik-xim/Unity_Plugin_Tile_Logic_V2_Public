@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Обертка нужная для запуска(передачи данных)
 /// </summary>
-public class TaskListAbsTileLogicAbsTaskTileDKOTypeTile : AbsTileLogicAbsTaskDKO
+public class TaskListAbsTileLogicAbsTaskTileDKOTypeTile : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit
     {

@@ -17,12 +17,12 @@ public class ListAbsTileLogicAbsTaskTileDKOTypeTile : MonoBehaviour
     private GetDataSODataDKODataKey _keyGetTypeTile;
     
     [SerializeField] 
-    private AbsTileLogicAbsTaskDKO _default;
+    private TL_AbsTaskLogicDKO _default;
 
     [SerializeField]
-    private List<AbsKeyData<GetDataSO_KeyExampleTipeTile, AbsTileLogicAbsTaskDKO>> _exception;
+    private List<AbsKeyData<GetDataSO_KeyExampleTipeTile, TL_AbsTaskLogicDKO>> _exception;
 
-    private Dictionary<KeyExampleTipeTile, AbsTileLogicAbsTaskDKO> _exceptionData = new Dictionary<KeyExampleTipeTile, AbsTileLogicAbsTaskDKO>();
+    private Dictionary<KeyExampleTipeTile, TL_AbsTaskLogicDKO> _exceptionData = new Dictionary<KeyExampleTipeTile, TL_AbsTaskLogicDKO>();
 
     private void Awake()
     {

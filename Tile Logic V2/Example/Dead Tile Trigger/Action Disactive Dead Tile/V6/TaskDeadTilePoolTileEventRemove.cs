@@ -8,7 +8,7 @@ using UnityEngine;
 /// (а значит выключить таил)
 /// (а т.к в этой реализации на таиле есть реализованный интерфеис, то пул, сообит таилу, что тот возращаеться в пул, и логика самого таила и отключит этот таил)
 /// </summary>
-public class TaskDeadTilePoolTileEventRemove : AbsTileLogicAbsTaskDKO
+public class TaskDeadTilePoolTileEventRemove : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit;
     public override bool IsInit => true;

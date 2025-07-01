@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Splines;
 
-public class TaskSetPositionGGSpawnTileSpline : AbsTileLogicAbsTaskDKO
+public class TaskSetPositionGGSpawnTileSpline : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit;
     public override bool IsInit => true;

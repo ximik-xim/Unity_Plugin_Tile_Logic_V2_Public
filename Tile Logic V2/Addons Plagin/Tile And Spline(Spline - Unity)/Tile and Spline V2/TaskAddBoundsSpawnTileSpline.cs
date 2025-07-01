@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class TaskAddBoundsSpawnTileSpline : AbsTileLogicAbsTaskDKO
+public class TaskAddBoundsSpawnTileSpline : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit
     {

@@ -41,10 +41,18 @@ public class PoolTileDefault : MonoBehaviour
 
     private void Awake()
     {
+#if UNITY_EDITOR
+        bool lastStatusInspector = false;
+        if (_examplePoolKey != null)
+        {
+            lastStatusInspector = _examplePoolKey.UseListInspector;
+        }
+#endif
+        
         _examplePoolKey = new CustomPool<PoolTileEvent>(CreateData, null, null);
 
 #if UNITY_EDITOR
-        _examplePoolKey.UseListInspector = true;
+        _examplePoolKey.UseListInspector = lastStatusInspector;
 #endif
         
         StartAction();

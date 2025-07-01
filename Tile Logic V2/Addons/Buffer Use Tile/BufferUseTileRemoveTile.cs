@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class BufferUseTileRemoveTile : AbsTileLogicAbsTaskDKO
+public class BufferUseTileRemoveTile : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit
     {

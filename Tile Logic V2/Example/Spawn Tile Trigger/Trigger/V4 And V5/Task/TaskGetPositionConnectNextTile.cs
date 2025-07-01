@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Задача на получения координат точки соединение следующего таила с текущим
 /// </summary>
-public class TaskGetPositionConnectNextTile : AbsTileLogicAbsTaskDKO
+public class TaskGetPositionConnectNextTile : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit;
     public override bool IsInit => true;

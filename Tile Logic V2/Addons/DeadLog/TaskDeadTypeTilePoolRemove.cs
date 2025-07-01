@@ -7,7 +7,7 @@ using UnityEngine;
 /// Вернет в пул таил
 /// (на прямую, в сам пул передаст ссылку на класс пула у таила)
 /// </summary>
-public class TaskDeadTypeTilePoolRemove : AbsTileLogicAbsTaskDKO
+public class TaskDeadTypeTilePoolRemove : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit;
     public override bool IsInit => true;

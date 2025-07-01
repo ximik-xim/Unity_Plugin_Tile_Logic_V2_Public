@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class TaskAddTilePoolSpawnTileSpline : AbsTileLogicAbsTaskDKO
+public class TaskAddTilePoolSpawnTileSpline : TL_AbsTaskLogicDKO
 {
    public override event Action OnInit;
    public override bool IsInit => true;

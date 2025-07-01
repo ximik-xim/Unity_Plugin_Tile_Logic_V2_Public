@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// 
 /// </summary>
-public class TaskTileParentActiveAndDisactive1 : AbsTileLogicAbsTaskDKO
+public class TaskTileParentActiveAndDisactive1 : TL_AbsTaskLogicDKO
 {
     public override event Action OnInit;
     public override bool IsInit => true;
