@@ -6,7 +6,10 @@ using UnityEngine.Splines;
 public class ReactionTriggerMarkerTileSpline : MonoBehaviour
 {
     [SerializeField] 
-    private TriggerMarkerTileSpline _triggerSpline;
+    private TriggerMarkerTileSpline _triggerSplineEner;
+    
+    [SerializeField] 
+    private TriggerMarkerTileSpline _triggerSplineExit;
 
     [SerializeField] 
     private SplineOffsetSplineContainer _offsetSplineContainer;
@@ -19,10 +22,11 @@ public class ReactionTriggerMarkerTileSpline : MonoBehaviour
     
     private void Awake()
     {
-        _triggerSpline.OnTrigger += OnTrigger;
+        _triggerSplineEner.OnTrigger += OnTriggerEnter;
+        _triggerSplineExit.OnTrigger += OnTriggerEnterExit;
     }
-
-    private void OnTrigger(AbsTileSplineMarker marker)
+    
+    private void OnTriggerEnter(AbsTileSplineMarker marker)
     {
         if (marker.GetTileSplineMarker() == TypeTileSplineMarker.BeginTile)
         {
@@ -31,7 +35,10 @@ public class ReactionTriggerMarkerTileSpline : MonoBehaviour
             
             _offsetSplineContainer.AddSpline(_setContainer, getContainer);
         }
-        
+    }
+
+    private void OnTriggerEnterExit(AbsTileSplineMarker marker)
+    {
         if (marker.GetTileSplineMarker() == TypeTileSplineMarker.EndTile)
         {
             var data = (DKODataInfoT<AbsGetSplineContainer>)marker.GetTileDKO().KeyRun(_keyGetData.GetData());
@@ -40,9 +47,11 @@ public class ReactionTriggerMarkerTileSpline : MonoBehaviour
             _offsetSplineContainer.RemoveSpline(_setContainer, getContainer);
         }
     }
+    
 
     private void OnDestroy()
     {
-        _triggerSpline.OnTrigger -= OnTrigger;
+        _triggerSplineEner.OnTrigger -= OnTriggerEnter;
+        _triggerSplineExit.OnTrigger -= OnTriggerEnterExit;
     }
 }

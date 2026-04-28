@@ -15,16 +15,25 @@ public class SetGMPositionSpliteAndRb : MonoBehaviour
    public bool IsInit => _isInit;
    private bool _isInit = false;
    public event Action OnInit;
+
+   /// <summary>
+   /// Устанавливать ли направление обьекту вдоль линии движения
+   /// </summary>
+   [SerializeField]
+   private bool _setForwardSpline = false;
    
-   [SerializeField] 
-   private AbsGetNextSpline _absGetNextSpline;
+   /// <summary>
+   /// Устанавливать ли вектор силы вдоль линии движения
+   /// </summary>
+   [SerializeField]
+   private bool _setForceForwardSpline = false;
    
    /// <summary>
    ///нужен для координат обьекта
    ///и вычесления смещени 
    /// </summary>
    [SerializeField] 
-   private GameObject _splineContainer;
+   private SplineContainer _splineContainer;
    
    /// <summary>
    /// Обьект, который будет прикреплен к ломанной линии(Spline)
@@ -43,33 +52,58 @@ public class SetGMPositionSpliteAndRb : MonoBehaviour
 
    [SerializeField] 
    private Vector3 _startOffset;
-   
-   private Spline currentSpline;
 
+   /// <summary>
+   /// Как именно буду уст поз игрока, через Rb или просто у трансформа укажу позицию
+   /// </summary>
+   [SerializeField] 
+   private TypeSetPos _typeSetPos;
+   
+   /// <summary>
+   /// Как именно буду уст скорость
+   /// - Резко
+   /// - Через плавное добавление AddForce(в этом случае есть некий зазор который надо учесть)
+   /// </summary>
+   [SerializeField] 
+   private TypeSetForceTargetForward _forceTargetForward;
+
+   /// <summary>
+   /// Текущий Spline
+   /// </summary>
+   public Spline CurrentSpline => _currentSpline;
+   private Spline _currentSpline;
+   public event Action OnUpdateCurrentSpline;
+
+   public Vector3 TargetPositon => _targetPositon;
+   private Vector3 _targetPositon;
+   public event Action OnUpdateTargetPositon;
+   
+   /// <summary>
+   /// Значение T на текущем Spline
+   /// </summary>
+   public float CurrentT => _currentT;
+   private float _currentT;
+   public event Action OnUpdateCurrentSplineT;
+   
+   /// <summary>
+   /// Направление Spline в текущей точке
+   /// </summary>
+   public Vector3 ForwardSpline => _forwardSpline;
+   private Vector3 _forwardSpline;
+   public event Action OnUpdateCurrentSplineForward;
+   
    private bool _isStart = false;
    
    private void Awake()
    {
-      if (_absGetNextSpline.IsInit == false)
-      {
-         _absGetNextSpline.OnInit += OnInitData;
-         return;
-      }
-
       Init();
    }
-
-   private void OnInitData()
-   {
-      _absGetNextSpline.OnInit -= OnInitData;
-      Init();
-   }
-
+   
    private void Init()
    {
       if (_startAwake == true)
       {
-         GetNextSplineLogic();
+         StartLogic();
          _isStart = true;
       }
       
@@ -79,112 +113,215 @@ public class SetGMPositionSpliteAndRb : MonoBehaviour
 
    public void StartLogic()
    {
-      GetNextSplineLogicLast();
-      _targetGM.transform.position += _startOffset;
+      //Устанавливаем позицию у игрока
+      _targetGM.transform.position = _splineContainer.Splines[0].EvaluatePosition(0);
+      _targetGM.transform.position += _splineContainer.transform.position + _startOffset;
       
-      var native = new NativeSpline(currentSpline);
-      SplineUtility.GetNearestPoint(native, _targetGM.transform.position - _splineContainer.transform.position, out float3 nearest, out float t);
-      
-      _targetGM.transform.position = nearest;
-      _targetGM.transform.position += _splineContainer.transform.position;
       _isStart = true;
    }
 
+   public void StartSetPosition()
+   {
+      _isStart = true;
+   }
+   
    public void StopSetPosition()
    {
       _isStart = false;
-   }
-
-   private void GetNextSplineLogic()
-   {
-      currentSpline = _absGetNextSpline.GetNextSpline();
-      
-      var native = new NativeSpline(currentSpline);
-      SplineUtility.GetNearestPoint(native, _targetGM.transform.position - _splineContainer.transform.position, out float3 nearest, out float t);
-      _targetGM.transform.position = nearest;
-      _targetGM.transform.position += _splineContainer.transform.position;
-   }
- 
-   private void GetNextSplineLogicLast()
-   {
-      currentSpline = _absGetNextSpline.GetNextSpline();
-      //устанавливаю начальную позицию в 0 знач пути у сплита(крч в начало пути ставлю обьект)
-      _targetGM.transform.position = currentSpline.EvaluatePosition(0);
-      _targetGM.transform.position += _splineContainer.transform.position;
    }
    
    private void FixedUpdate()
    {
       if (_isStart == true)
+      { 
+         //Ищем след. точку, к которой будем двигаться(за 1 точку берем тек. линию)
+        SplineUtility.GetNearestPoint(_splineContainer.Splines[0], _targetGM.transform.position - _splineContainer.transform.position, out float3 nearest1, out float t1);
+        
+        float dist =  math.distance(_targetGM.transform.position - _splineContainer.transform.position, nearest1);
+        Vector3 targetPosition = nearest1;
+        Spline targetSpline = _splineContainer.Splines[0];
+        float targetT = t1;
+        
+         //Ищем, есть ли точка ближе у других линий(нужно, т.к линия разбита на части и при переходе на след. таил, надо найти точку уже на след. линии)
+        if (_splineContainer.Splines.Count > 1)
+        {
+           for (int i = 1; i < _splineContainer.Splines.Count; i++)
+           {
+              SplineUtility.GetNearestPoint(_splineContainer.Splines[i], _targetGM.transform.position - _splineContainer.transform.position, out float3 nearest, out float t);
+              float currentDist = math.distance(_targetGM.transform.position - _splineContainer.transform.position, nearest);
+
+              if (dist > currentDist)
+              {
+                 dist = currentDist;
+                 targetPosition = nearest;
+                 targetSpline = _splineContainer.Splines[i];
+                 targetT = t;
+              }
+           }
+        }
+
+        //находим нужную точку и движемся к ней
+        targetPosition += _splineContainer.transform.position;
+        MoveTargetPos(targetPosition);
+
+        //получаем направление Spline
+        Vector3 splineForward = Vector3.Normalize(targetSpline.EvaluateTangent(targetT));
+        Vector3 worldForward = _splineContainer.transform.TransformDirection(splineForward);
+        
+        //Устанавливаем направление взгляда игрока вдоль линии
+        if (_setForwardSpline == true)
+        {
+// 1. Получаем направление кривой в конкретной точке t (нормализованное)
+           // ВАЖНО: EvaluateTangent возвращает вектор в локальном пространстве сплайна
+           splineForward = Vector3.Normalize(targetSpline.EvaluateTangent(targetT));
+           Vector3 splineUp = Vector3.Normalize(targetSpline.EvaluateUpVector(targetT));
+
+           // 2. Переводим локальный вектор сплайна в мировой, чтобы вращение было корректным 
+           // относительно мировой сцены (если контейнер сплайна повернут)
+           worldForward = _splineContainer.transform.TransformDirection(splineForward);
+           Vector3 worldUp = _splineContainer.transform.TransformDirection(splineUp);
+
+           // 3. Устанавливаем вращение. 
+           // LookRotation делает ось Z объекта направленной вдоль worldForward.
+           if (worldForward.sqrMagnitude > 0.001f)
+           {
+              _targetGM.transform.rotation = Quaternion.LookRotation(worldForward, worldUp);
+           }
+        }
+
+        // Указываем вектор направления вдоль линии
+        if (_setForceForwardSpline == true)
+        {
+           Vector3 engineForward = _targetGM.transform.forward;
+         
+           //Проверяем направление скорости
+           if (Vector3.Dot(_rigidbody.linearVelocity, _targetGM.transform.forward) < 0)
+           {
+              engineForward *= -1;
+           }
+        
+           SetForceTargetForward(engineForward);   
+        }
+
+        if (_targetPositon != targetPosition) 
+        {
+           _targetPositon = targetPosition;
+           OnUpdateTargetPositon?.Invoke();
+        }
+
+        if (_currentSpline != targetSpline) 
+        {
+           _currentSpline = targetSpline;   
+           OnUpdateCurrentSpline?.Invoke();
+        }
+
+        _currentT = targetT;
+        OnUpdateCurrentSplineT?.Invoke();
+
+        if (_forwardSpline != worldForward) 
+        {
+           _forwardSpline = worldForward;
+           OnUpdateCurrentSplineForward?.Invoke();
+        }
+      }
+      
+      
+   }
+
+   private void OnDrawGizmos()
+   {
+      Gizmos.color = Color.green;
+      Gizmos.DrawLine(transform.position, transform.position + transform.forward * 5f);
+
+      // if (_currentSpline!=null)
+      // {
+      //    Vector3 splineForward = Vector3.Normalize(_currentSpline.EvaluateTangent(_currentT));
+      //
+      //    Gizmos.color = Color.red;
+      //    Gizmos.DrawLine(transform.position, transform.position + splineForward * 5f);
+      //    
+      //    Vector3 splineUp = Vector3.Normalize(_currentSpline.EvaluateUpVector(_currentT));
+      //    
+      //    Gizmos.color = Color.yellow;
+      //    Gizmos.DrawLine(transform.position, transform.position + splineUp * 5f);
+      //    
+      //    
+      //    //
+      //    Vector3 splineForwardWorld = Vector3.Normalize(_currentSpline.EvaluateTangent(_currentT));
+      //    
+      //    Gizmos.color = Color.blue;
+      //    Gizmos.DrawLine(transform.position, transform.position + _splineContainer.transform.TransformDirection(splineForward) * 5f);
+      //    
+      //    Vector3 splineUpWorld = Vector3.Normalize(_currentSpline.EvaluateUpVector(_currentT));
+      //    
+      //    Gizmos.color = Color.gray;
+      //    Gizmos.DrawLine(transform.position, transform.position + _splineContainer.transform.TransformDirection(splineUp) * 5f);
+      // }
+      
+   }
+
+   //Переносит игрока на линию движения
+   private void MoveTargetPos(Vector3 targetPosition)
+   {
+      switch (_typeSetPos)
       {
-         var native = new NativeSpline(currentSpline);
-         float distance = SplineUtility.GetNearestPoint(native,
-            _targetGM.transform.position - _splineContainer.transform.position, out float3 nearest, out float t);
-
-         _targetGM.transform.position = nearest;
-         _targetGM.transform.position += _splineContainer.transform.position;
-
-         Vector3 forward = Vector3.Normalize(native.EvaluateTangent(t));
-         Vector3 up = native.EvaluateUpVector(t);
-
-         var remappedForward = new Vector3(0, 0, 1);
-         var remappedUp = new Vector3(0, 1, 0);
-         var axisRemapRotation = Quaternion.Inverse(Quaternion.LookRotation(remappedForward, remappedUp));
-
-         transform.rotation = Quaternion.LookRotation(forward, up) * axisRemapRotation;
-
-         Vector3 engineForward = transform.forward;
-
-         if (Vector3.Dot(_rigidbody.linearVelocity, transform.forward) < 0)
+         case TypeSetPos.SetPosTransform:
          {
-            engineForward *= -1;
+            _targetGM.transform.position = targetPosition;
          }
-
-         _rigidbody.linearVelocity = _rigidbody.linearVelocity.magnitude * engineForward;
-
-         // if (ComparePrecisionFractionalValue(1 % t, 1f, 3) == true)  
-         // {
-         //    GetNextSplineLogic();
-         // }
-
-         var targetPosF3 = currentSpline.EvaluatePosition(1f);
-         Vector3 targetPos = new Vector3(targetPosF3.x, targetPosF3.y, targetPosF3.z);
-         targetPos += _splineContainer.transform.position;
-
-         if (CheckPosition(_targetGM.transform.position, targetPos, 3) == true)
+            break;
+         
+         case TypeSetPos.RB_MovePos:
          {
-            GetNextSplineLogic();
+            _rigidbody.MovePosition(targetPosition);
          }
+            break;
       }
    }
    
-   private bool CheckPosition(Vector3 currentPos,Vector3 targetPos,int precision)
+   private void SetForceTargetForward(Vector3 engineForward)
    {
-      if (ComparePrecisionFractionalValue(currentPos.x, targetPos.x, precision) == true) 
+      switch (_forceTargetForward)
       {
-         if (ComparePrecisionFractionalValue(currentPos.y, targetPos.y, precision) == true) 
+         case TypeSetForceTargetForward.SetVelocity:
          {
-            if (ComparePrecisionFractionalValue(currentPos.z, targetPos.z, precision) == true)
-            {
-               return true;
-            }
+            //Сохраняет скорость по модулю и резко перенапровляет её вдоль движения
+            _rigidbody.linearVelocity = _rigidbody.linearVelocity.magnitude * engineForward;
          }
+            break;
+         
+         case TypeSetForceTargetForward.AddForce:
+         {
+            //Вычисляет желаемую скорость и через AddForce меняет плавно напровление
+            Vector3 desiredVelocity = engineForward * _rigidbody.linearVelocity.magnitude;
+      
+            Vector3 steering = desiredVelocity - _rigidbody.linearVelocity;
+      
+            _rigidbody.AddForce(steering, ForceMode.Acceleration);
+         }
+            break;
       }
+      
 
-      return false;
    }
    
-   public static bool ComparePrecisionFractionalValue(float a,float b, int precision)
+   
+   public enum TypeSetPos
    {
-      float value = Mathf.Abs(a - b);
-      float DecimalPrecision = Mathf.Pow(10, -precision);
-
-      if (value < DecimalPrecision) 
-      {
-         return true;
-      }
-
-      return false;
+      None,
+      SetPosTransform,
+      RB_MovePos
+   }
+   
+   public enum TypeSetForceTargetForward
+   {
+      None,
+      SetVelocity,
+      AddForce
    }
 
 }
+
+
+
+
